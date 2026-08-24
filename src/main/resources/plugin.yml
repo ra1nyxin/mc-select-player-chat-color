@@ -1,0 +1,14 @@
+name: mc-select-player-chat-color
+version: 1.0.0
+main: ra1nyxin.mcselectplayerchatcolor.McSelectPlayerChatColor
+author: ra1nyxin
+api-version: '26.2'
+description: Lets operators assign Minecraft chat colors to players.
+commands:
+  mc-select-player-chat-color:
+    description: Sets or clears a player's chat color.
+    usage: /mc-select-player-chat-color <player> <color|reset>
+permissions:
+  mc-select-player-chat-color.admin:
+    description: Allows setting player chat colors.
+    default: op
