@@ -33,108 +33,108 @@ dark_gray, blue, green, aqua, red, light_purple, yellow, white
 classDiagram
     direction TB
 
-    class McSelectPlayerChatColor {
-        - Map playerColors
-        - List colorNames
-        + onEnable()
-        + onAsyncChat(event)
-        + onCommand(sender, command, label, args)
-        + onTabComplete(sender, command, alias, args)
-        - findKnownPlayer(name)
-        - loadPlayerColors()
-        - savePlayerColors()
-        - sendUsage(sender, label)
+    class 聊天颜色插件主类 {
+        - 玩家 UUID 到颜色的并发映射
+        - 可用原版颜色名称列表
+        + 启用插件()
+        + 处理异步聊天事件(事件)
+        + 执行管理员命令(发送者, 参数)
+        + 提供命令补全(发送者, 参数)
+        - 查找在线或已缓存玩家(名称)
+        - 加载玩家颜色()
+        - 保存玩家颜色()
+        - 发送命令用法(发送者)
     }
 
-    class JavaPlugin {
-        <<abstract>>
-        + saveDefaultConfig()
-        + getConfig()
-        + getServer()
+    class JavaPlugin抽象父类 {
+        <<抽象父类>>
+        + 保存默认配置()
+        + 取得配置()
+        + 取得服务器()
     }
 
-    class Listener {
-        <<interface>>
+    class 事件监听器 {
+        <<接口>>
     }
 
-    class CommandExecutor {
-        <<interface>>
-        + onCommand(sender, command, label, args)
+    class 命令执行器 {
+        <<接口>>
+        + 执行命令(发送者, 命令, 参数)
     }
 
-    class TabCompleter {
-        <<interface>>
-        + onTabComplete(sender, command, alias, args)
+    class 命令补全器 {
+        <<接口>>
+        + 提供补全(发送者, 命令, 参数)
     }
 
-    class PlayerColorMap {
-        <<ConcurrentHashMap>>
-        UUID playerId
-        NamedTextColor chatColor
-        + get(playerId)
-        + put(playerId, color)
-        + remove(playerId)
+    class 玩家颜色映射 {
+        <<并发哈希映射>>
+        玩家 UUID
+        原版命名颜色
+        + 查询(UUID)
+        + 写入(UUID, 颜色)
+        + 移除(UUID)
     }
 
-    class ConfigurationFile {
+    class 配置文件 {
         <<config.yml>>
-        player-colors UUID to colorName
-        + load()
-        + save(tempFile)
-        + atomicMoveOrReplace()
+        玩家 UUID 到颜色名称
+        + 读取()
+        + 写入临时文件()
+        + 原子替换或普通替换()
     }
 
-    class NamedTextColor {
-        <<Adventure value>>
-        NAMES index
-        + value(colorName)
-        + name()
+    class 原版命名颜色 {
+        <<Adventure 值对象>>
+        原版颜色名称索引
+        + 按名称查询(颜色名)
+        + 取得颜色名称()
     }
 
-    class AsyncChatEvent {
-        player UUID
-        message Component
-        + renderer(ChatRenderer)
+    class 异步聊天事件 {
+        发送者 UUID
+        聊天消息组件
+        + 设置聊天渲染器(渲染器)
     }
 
-    class ChatRenderer {
-        <<Paper interface>>
-        + viewerUnaware(renderer)
-        + render(source, displayName, message, viewer)
+    class 聊天渲染器 {
+        <<Paper 接口>>
+        + 创建无接收者差异渲染器(渲染器)
+        + 渲染(发送者, 显示名, 消息, 接收者)
     }
 
-    class PlainTextComponentSerializer {
-        <<Adventure utility>>
-        + serialize(message)
+    class 纯文本组件序列化器 {
+        <<Adventure 工具>>
+        + 转换为纯文本(消息)
     }
 
-    class Player {
-        UUID uniqueId
-        String name
+    class 在线玩家 {
+        UUID 唯一标识
+        玩家名
     }
 
-    class OfflinePlayer {
-        UUID uniqueId
-        String name
+    class 已缓存离线玩家 {
+        UUID 唯一标识
+        玩家名
     }
 
-    JavaPlugin <|-- McSelectPlayerChatColor
-    Listener <|.. McSelectPlayerChatColor
-    CommandExecutor <|.. McSelectPlayerChatColor
-    TabCompleter <|.. McSelectPlayerChatColor
+    JavaPlugin抽象父类 <|-- 聊天颜色插件主类
+    事件监听器 <|.. 聊天颜色插件主类
+    命令执行器 <|.. 聊天颜色插件主类
+    命令补全器 <|.. 聊天颜色插件主类
 
-    McSelectPlayerChatColor *-- PlayerColorMap : owns
-    McSelectPlayerChatColor --> ConfigurationFile : loads and atomically saves
-    ConfigurationFile --> PlayerColorMap : persists UUID mapping
-    PlayerColorMap --> NamedTextColor : stores values
-    McSelectPlayerChatColor --> NamedTextColor : validates color names
+    聊天颜色插件主类 *-- 玩家颜色映射 : 持有
+    聊天颜色插件主类 --> 配置文件 : 读取并安全保存
+    配置文件 --> 玩家颜色映射 : 持久化 UUID 映射
+    玩家颜色映射 --> 原版命名颜色 : 存储颜色值
+    聊天颜色插件主类 --> 原版命名颜色 : 校验颜色名称
 
-    McSelectPlayerChatColor ..> Player : finds exact online player
-    McSelectPlayerChatColor ..> OfflinePlayer : finds cached offline player
-    McSelectPlayerChatColor --> AsyncChatEvent : handles at HIGHEST priority
-    AsyncChatEvent --> ChatRenderer : installs when UUID has a color
-    ChatRenderer --> PlainTextComponentSerializer : flattens message text
-    ChatRenderer --> NamedTextColor : colors whole chat Component
+    聊天颜色插件主类 ..> 在线玩家 : 精确查找在线玩家
+    聊天颜色插件主类 ..> 已缓存离线玩家 : 查找已缓存离线玩家
+    聊天颜色插件主类 --> 异步聊天事件 : 以 HIGHEST 优先级处理
+    异步聊天事件 --> 聊天渲染器 : UUID 有颜色时设置
+    聊天渲染器 --> 纯文本组件序列化器 : 展平消息文本
+    聊天渲染器 --> 原版命名颜色 : 为整条聊天设置颜色
 ```
 
 颜色映射由 UUID 而非玩家名保存，因此玩家改名后仍会保留已设置的聊天颜色。
